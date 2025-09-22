@@ -1,15 +1,13 @@
-import os
 import glob
 import logging
+import os
+
 import pandas as pd
-from pandera import Column, Check, DataFrameSchema
+from pandera import Check, Column, DataFrameSchema
 from pandera.errors import SchemaErrors
 
 # Configure logging for better visibility in a CI/CD pipeline
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Define the directory where the raw data
 RAW_DIR = "data/raw"
@@ -30,16 +28,13 @@ SCHEMA = DataFrameSchema(
         "Contract Length": Column(str),
         "Total Spend": Column(int, Check.ge(0), coerce=True, nullable=True),
         "Last Interaction": Column(int),
-        "Churn": Column(
-            object,
-            Check.isin([0, 1, "Yes", "No", True, False]),
-            nullable=True
-        ),
+        "Churn": Column(object, Check.isin([0, 1, "Yes", "No", True, False]), nullable=True),
     },
     # Use lazy=True to collect all validation errors before raising an exception
     # which provides a more comprehensive report in the CI logs.
-    lazy=True
+    lazy=True,
 )
+
 
 def _find_first_csv_path() -> str:
     """Finds the path to the first CSV file in the raw data directory."""
@@ -50,6 +45,7 @@ def _find_first_csv_path() -> str:
             "Provide Kaggle secrets or place a sample CSV file locally."
         )
     return paths[0]
+
 
 def _load_and_clean_data(csv_path: str) -> pd.DataFrame:
     """Loads the CSV and performs basic cleaning before validation."""
@@ -85,8 +81,7 @@ def _run_sanity_checks(df: pd.DataFrame):
         .mean()
     )
     assert 0.01 <= churn_rate <= 0.99, (
-        f"Churn rate out of bounds: {churn_rate}. "
-        "Expected between 0.01 and 0.99."
+        f"Churn rate out of bounds: {churn_rate}. Expected between 0.01 and 0.99."
     )
     logging.info("Custom sanity checks passed.")
 
