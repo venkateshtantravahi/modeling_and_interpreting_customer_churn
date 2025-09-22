@@ -13,7 +13,7 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-vars:
+env:
   PY_VERSIONS: '["3.10", "3.11", "3.12"]'
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ${{ vars.PY_VERSIONS }}
+        python-version: ${{ env.PY_VERSIONS }}
     steps:
       - uses: actions/checkout@v4
 
