@@ -13,7 +13,7 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
+vars:
   PY_VERSIONS: '["3.10", "3.11", "3.12"]'
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ${{ fromJson(env.PY_VERSIONS) }}
+        python-version: ${{ vars.PY_VERSIONS }}
     steps:
       - uses: actions/checkout@v4
 
@@ -120,14 +120,14 @@ jobs:
               subprocess.check_call([sys.executable, "-m", "pip", "install", r])
           PY
 
-      - name: Download Kaggle data (optional)
+      - name: Download Kaggle data
         if: ${{ env.KAGGLE_USERNAME != '' && env.KAGGLE_KEY != '' }}
         run: |
           mkdir -p ~/.kaggle
           printf '{"username":"%s","key":"%s"}' "$KAGGLE_USERNAME" "$KAGGLE_KEY" > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
           mkdir -p data/raw
-          kaggle datasets download -d muhammadshahidazeem/customer-churn-dataset -p data/raw --unzip
+          kaggle datasets download -d imsparsh/churn-risk-rate-hackerearth-ml -p data/raw --unzip
       
       - name: Detect dataset presence
         id: find_data
