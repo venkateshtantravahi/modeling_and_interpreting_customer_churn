@@ -29,10 +29,7 @@ SCHEMA = DataFrameSchema(
         "Total Spend": Column(int, Check.ge(0), coerce=True, nullable=True),
         "Last Interaction": Column(int),
         "Churn": Column(object, Check.isin([0, 1, "Yes", "No", True, False]), nullable=True),
-    },
-    # Use lazy=True to collect all validation errors before raising an exception
-    # which provides a more comprehensive report in the CI logs.
-    lazy=True,
+    }
 )
 
 
