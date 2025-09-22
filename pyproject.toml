@@ -1,0 +1,40 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "customer_churn_prediction"
+version = "0.0.1"
+description = "A Machine Learning Pipeline for building customer churn model and interpreting it using explainable AI tools like SHAP and LIME."
+authors = [
+  { name = "VenkateshTantravahi" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+requires-python = "~=3.11.0"
+
+
+[tool.ruff]
+line-length = 99
+src = ["customer_churn_prediction"]
+include = ["pyproject.toml", "customer_churn_prediction/**/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "I", "UP", "B", "C90"]  # Add import sorting
+extend-ignore = ["E203", "E266", "E501"]
+
+[tool.ruff.format]
+quote-style="double"
+indent-style="space"
+
+[tool.ruff.lint.isort]
+known-first-party = ["customer_churn_prediction"]
+force-sort-within-sections = true
+
+[tool.pytest.ini_options]
+testpaths=["tests"]
+addopts= "-q"

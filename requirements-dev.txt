@@ -1,0 +1,15 @@
+# (developer + CI)
+-r requirements.txt
+
+pre-commit==4.3.0
+ruff==0.13.1
+pytest==8.4.2
+pytest-cov==7.0.0
+pandera==0.26.1
+kaggle>=1.7
+
+mypy==1.18.2
+types-requests>=2.30.0
+nbqa==1.9,1
+jupyterlab==4.4.7
+ipykernel==6.30.1

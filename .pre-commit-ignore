@@ -1,0 +1,4 @@
+data/
+artifacts/
+mlruns/
+**/.ipynb_checkpoints/
