@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
+import hashlib
 import json
+import logging
 import os
+from pathlib import Path
 import stat
 import time
-import hashlib
-import logging
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict, List, Optional
 
 from kaggle.api.kaggle_api_extended import KaggleApi
 
@@ -36,11 +35,12 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
 @dataclass(frozen=True)
 class KaggleCredentials:
     """Holds Kaggle credentials"""
-    username: Optional[str] = None
-    key: Optional[str] = None
+
+    username: str | None = None
+    key: str | None = None
 
     @classmethod
-    def from_env(cls) -> "KaggleCredentials":
+    def from_env(cls) -> KaggleCredentials:
         return cls(
             username=os.getenv("KAGGLE_USERNAME"),
             key=os.getenv("KAGGLE_API_KEY"),
@@ -59,12 +59,12 @@ class KaggleDatasetIngestor:
     """
 
     def __init__(
-            self,
-            dataset_slug: str,
-            out_dir: Path = DEFAULT_OUT_DIR,
-            unzip: bool = True,
-            quiet: bool = False,
-            creds: Optional[KaggleCredentials] = None,
+        self,
+        dataset_slug: str,
+        out_dir: Path = DEFAULT_OUT_DIR,
+        unzip: bool = True,
+        quiet: bool = False,
+        creds: KaggleCredentials | None = None,
     ) -> None:
         """
         Args:
@@ -85,7 +85,7 @@ class KaggleDatasetIngestor:
 
     # ------------------- Public API ------------------------
 
-    def download(self, force: bool = False) -> Dict:
+    def download(self, force: bool = False) -> dict:
         """
         Download dataset if needed, compute manifest, and return it.
 
@@ -94,11 +94,11 @@ class KaggleDatasetIngestor:
         """
         if self._is_already_downloaded() and not force:
             LOGGER.info(
-                "Dataset already present, skipping download (use force=True to re-download).")
+                "Dataset already present, skipping download (use force=True to re-download)."
+            )
             return self._read_manifest()
 
-        LOGGER.info("Starting Kaggle dataset download: %s",
-                    self.dataset_slug)
+        LOGGER.info("Starting Kaggle dataset download: %s", self.dataset_slug)
         self._authenticate_and_download()
         manifest = self._build_manifest()
         _write_json_atomic(self.manifest_path, manifest)
@@ -119,7 +119,7 @@ class KaggleDatasetIngestor:
         # consider it "present" if at least one listed file exists
         return any(Path(f["path"]).exists() for f in manifest.get("files", []))
 
-    def _read_manifest(self) -> Dict:
+    def _read_manifest(self) -> dict:
         return json.loads(self.manifest_path.read_text())
 
     def _authenticate_and_download(self) -> None:
@@ -129,15 +129,14 @@ class KaggleDatasetIngestor:
             write kaggle.json there (0600 perms). Kaggle API will pick it up via KAGGLE_CONFIG_DIR.
           - Else rely on ~/.kaggle/kaggle.json.
         """
-        cleanup_dir: Optional[Path] = None
+        cleanup_dir: Path | None = None
         try:
             if self.creds.username and self.creds.key:
                 cfg_dir = Path(".kaggle_runtime")
                 cfg_dir.mkdir(parents=True, exist_ok=True)
                 kaggle_json = cfg_dir / "kaggle.json"
                 kaggle_json.write_text(
-                    json.dumps({"username": self.creds.username,
-                                "key": self.creds.key})
+                    json.dumps({"username": self.creds.username, "key": self.creds.key})
                 )
                 kaggle_json.chmod(stat.S_IRUSR | stat.S_IWUSR)  # 0o600
                 os.environ["KAGGLE_CONFIG_DIR"] = str(cfg_dir.resolve())
@@ -165,15 +164,12 @@ class KaggleDatasetIngestor:
                     # non-fatal if cleanup fails in CI
                     pass
 
-    def _build_manifest(self) -> Dict:
-        files: List[Path] = [
-            p
-            for p in self.out_dir.rglob("*")
-            if p.is_file() and p.name != self.manifest_path.name
+    def _build_manifest(self) -> dict:
+        files: list[Path] = [
+            p for p in self.out_dir.rglob("*") if p.is_file() and p.name != self.manifest_path.name
         ]
         file_meta = [
-            {"path": str(p), "size": p.stat().st_size, "sha256": _sha256(p)}
-            for p in files
+            {"path": str(p), "size": p.stat().st_size, "sha256": _sha256(p)} for p in files
         ]
         return {
             "dataset": self.dataset_slug,
@@ -184,7 +180,9 @@ class KaggleDatasetIngestor:
 
 
 def _setup_logging(verbosity: int) -> None:
-    level = logging.WARNING if verbosity == 0 else logging.INFO if verbosity == 1 else logging.DEBUG
+    level = (
+        logging.WARNING if verbosity == 0 else logging.INFO if verbosity == 1 else logging.DEBUG
+    )
     logging.basicConfig(
         level=level,
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -192,7 +190,7 @@ def _setup_logging(verbosity: int) -> None:
     )
 
 
-def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Download/unzip a Kaggle dataset into data/raw with a manifest."
     )
@@ -232,7 +230,8 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     )
     return parser.parse_args(argv)
 
-def main(argv: Optional[List[str]] = None) -> None:
+
+def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     _setup_logging(args.verbose)
 
@@ -246,6 +245,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     manifest = ingestor.download(force=args.force)
     LOGGER.info("Wrote manifest: %s", (out_dir / "manifest.json").as_posix())
     print(json.dumps(manifest, indent=2))
+
 
 if __name__ == "__main__":
     main()
