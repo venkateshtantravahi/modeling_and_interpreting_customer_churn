@@ -10,6 +10,6 @@ kaggle>=1.7
 
 mypy==1.18.2
 types-requests>=2.30.0
-nbqa==1.9,1
+nbqa==1.9.1
 jupyterlab==4.4.7
 ipykernel==6.30.1
