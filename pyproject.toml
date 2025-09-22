@@ -38,3 +38,6 @@ force-sort-within-sections = true
 [tool.pytest.ini_options]
 testpaths=["tests"]
 addopts= "-q"
+
+[project.scripts]
+churn-make-dataset = "customer_churn_prediction.data.make_dataset:main"

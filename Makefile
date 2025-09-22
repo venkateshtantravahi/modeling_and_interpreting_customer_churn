@@ -65,8 +65,8 @@ create_environment:
 
 ## Make dataset
 .PHONY: data
-data: requirements
-	$(PYTHON_INTERPRETER) customer_churn_prediction/dataset.py
+data: getData
+	python -m customer_churn_prediction.data.make_dataset --dataset imsparsh/churn-risk-rate-hackerearth-ml
 
 
 #################################################################################
