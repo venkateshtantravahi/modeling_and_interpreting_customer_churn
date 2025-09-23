@@ -62,9 +62,15 @@ def _load_and_clean_data(csv_path: str) -> pd.DataFrame:
     logging.info(f"Loading data from {csv_path}...")
     df = pd.read_csv(csv_path)
 
-    # Convert 'Total Spend' column to numeric, coercing errors to NaN.
-    # This is a common data quality issue to address.
-    df["Total Spend"] = pd.to_numeric(df["Total Spend"], errors="coerce")
+    # Clean up the 'churn_risk_score' column, which may have negative values.
+    df["churn_risk_score"] = df["churn_risk_score"].replace({-1: None})
+
+    # In Some Cases, avg_time_spent might have negative values, which should be handled.
+    df['avg_time_spent'] = df['avg_time_spent'].apply(lambda x: x if x>=0 else None)
+
+    # The 'avg_frequency_login_days' column contains an 'Error' string, which needs to be handled.
+    df['avg_frequency_login_days'] = pd.to_numeric(
+        df['avg_frequency_login_days'], errors='coerce')
 
     logging.info(f"Loaded DataFrame with shape: {df.shape}")
     return df
@@ -81,17 +87,13 @@ def _run_sanity_checks(df: pd.DataFrame):
     assert df.shape[0] > 100, f"Dataset too small; expected > 100 rows, but got {df.shape[0]}."
 
     # Check for unique CustomerID
-    assert df["CustomerID"].is_unique, "CustomerID column must be unique."
+    assert df["customer_id"].is_unique, "CustomerID column must be unique."
 
-    # Check for a realistic churn rate
-    churn_rate = (
-        df["Churn"]
-        # .replace({"Yes": 1, "No": 0, True: 1, False: 0})
-        .astype(float)
-        .mean()
-    )
-    assert 0.01 <= churn_rate <= 0.99, (
-        f"Churn rate out of bounds: {churn_rate}. Expected between 0.01 and 0.99."
+    # Check for a realistic average churn rate
+    avg_churn_score = df['churn_risk_score'].mean()
+    assert 1.0 <= avg_churn_score <= 4.0, (
+        f"Average churn risk score out of bounds: {avg_churn_score}. "
+        "Expected between 1.0 and 4.0."
     )
     logging.info("Custom sanity checks passed.")
 
