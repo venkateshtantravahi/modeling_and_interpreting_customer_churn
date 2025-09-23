@@ -66,11 +66,10 @@ def _load_and_clean_data(csv_path: str) -> pd.DataFrame:
     df["churn_risk_score"] = df["churn_risk_score"].replace({-1: None})
 
     # In Some Cases, avg_time_spent might have negative values, which should be handled.
-    df['avg_time_spent'] = df['avg_time_spent'].apply(lambda x: x if x>=0 else None)
+    df["avg_time_spent"] = df["avg_time_spent"].apply(lambda x: x if x >= 0 else None)
 
     # The 'avg_frequency_login_days' column contains an 'Error' string, which needs to be handled.
-    df['avg_frequency_login_days'] = pd.to_numeric(
-        df['avg_frequency_login_days'], errors='coerce')
+    df["avg_frequency_login_days"] = pd.to_numeric(df["avg_frequency_login_days"], errors="coerce")
 
     logging.info(f"Loaded DataFrame with shape: {df.shape}")
     return df
@@ -90,10 +89,9 @@ def _run_sanity_checks(df: pd.DataFrame):
     assert df["customer_id"].is_unique, "CustomerID column must be unique."
 
     # Check for a realistic average churn rate
-    avg_churn_score = df['churn_risk_score'].mean()
+    avg_churn_score = df["churn_risk_score"].mean()
     assert 1.0 <= avg_churn_score <= 4.0, (
-        f"Average churn risk score out of bounds: {avg_churn_score}. "
-        "Expected between 1.0 and 4.0."
+        f"Average churn risk score out of bounds: {avg_churn_score}. Expected between 1.0 and 4.0."
     )
     logging.info("Custom sanity checks passed.")
 
